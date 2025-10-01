@@ -129,9 +129,8 @@
         #yesBtn {
             background: linear-gradient(135deg, #ff69b4, #ff1493);
             color: white;
-            position: absolute;
+            position: relative;
             z-index: 5;
-            transition: all 0.15s ease-out;
         }
 
         #yesBtn:hover {
@@ -293,11 +292,6 @@
         let currentMessageIndex = 0;
         let noClickCount = 0;
         let moveSpeed = 150; // Initial move distance
-        let noButtonMoves = 0; // Track how many times No button has moved
-        let yesButtonMoves = 0; // Track how many times Yes button has moved
-        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        const requiredNoMoves = 3; // Number of times No button must move before click registers
-        const requiredYesMoves = 5; // Number of times Yes button must move before click registers
 
         // Position the No button initially - away from Yes button
         function initNoButton() {
@@ -321,31 +315,31 @@
         // Re-initialize on window resize (orientation change on mobile)
         window.addEventListener('resize', initNoButton);
 
-        // Make the No button run away from the mouse (desktop only)
-        if (!isMobile) {
-            noBtn.addEventListener('mouseenter', function(e) {
-                moveNoButton();
-            });
-        }
+        // Make the No button run away from the mouse
+        noBtn.addEventListener('mouseenter', function(e) {
+            const rect = buttonsContainer.getBoundingClientRect();
+            const btnRect = noBtn.getBoundingClientRect();
+            
+            // Calculate new random position within bounds
+            const maxX = rect.width - btnRect.width;
+            const maxY = rect.height - btnRect.height;
+            
+            let newX = Math.random() * maxX;
+            let newY = Math.random() * maxY;
+            
+            // Increase difficulty after each attempt
+            moveSpeed = Math.min(moveSpeed + 20, 300);
+            
+            noBtn.style.left = newX + 'px';
+            noBtn.style.top = newY + 'px';
+            noBtn.style.transform = 'none';
+            
+            createSparkle(btnRect.left + btnRect.width/2, btnRect.top + btnRect.height/2);
+        });
 
-        // Handle click/tap on No button
-        noBtn.addEventListener('click', function(e) {
-            // On mobile, make button jump away a few times before registering click
-            if (isMobile && noButtonMoves < requiredMoves) {
-                e.preventDefault();
-                moveNoButton();
-                
-                // Update hint text
-                const movesLeft = requiredMoves - noButtonMoves;
-                if (movesLeft > 0) {
-                    clickCount.innerHTML = `Nice try! Tap it ${movesLeft} more time${movesLeft > 1 ? 's' : ''}! 😏`;
-                }
-                return;
-            }
-
-            // Register the actual "No" click
+        // If they somehow click the No button
+        noBtn.addEventListener('click', function() {
             noClickCount++;
-            noButtonMoves = 0; // Reset for next round
             currentMessageIndex = (currentMessageIndex + 1) % sorryMessages.length;
             mainText.innerHTML = sorryMessages[currentMessageIndex];
             
@@ -361,9 +355,6 @@
             }
 
             createHeart();
-            
-            // Reset button position for next round
-            setTimeout(initNoButton, 300);
         });
 
         yesBtn.addEventListener('click', function() {
