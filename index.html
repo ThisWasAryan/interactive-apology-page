@@ -316,14 +316,10 @@
             noBtn.style.transform = 'translate(-50%, -50%)';
         }
 
-        initYesButton();
         initNoButton();
 
         // Re-initialize on window resize (orientation change on mobile)
-        window.addEventListener('resize', function() {
-            initYesButton();
-            initNoButton();
-        });
+        window.addEventListener('resize', initNoButton);
 
         // Make the No button run away from the mouse (desktop only)
         if (!isMobile) {
@@ -332,43 +328,15 @@
             });
         }
 
-        // Handle click/tap on Yes button
-        yesBtn.addEventListener('click', function(e) {
-            // On mobile, make button jump away a few times before registering click
-            if (isMobile && yesButtonMoves < requiredYesMoves) {
-                e.preventDefault();
-                moveYesButton();
-                
-                // Update hint text
-                const movesLeft = requiredYesMoves - yesButtonMoves;
-                clickCount.innerHTML = `Wait! Tap it ${movesLeft} more time${movesLeft > 1 ? 's' : ''} to forgive me! 😅`;
-                return;
-            }
-
-            // Register the actual "Yes" click
-            mainText.innerHTML = "Yay! You forgave me! 😍💖🥳";
-            emojiContainer.innerHTML = "😊❤️💃🎉✨🥰💕🌟🎊💖🌹😘";
-            emojiContainer.classList.remove('hidden');
-            clickCount.innerHTML = "I LOVE YOU SO MUCH! ❤️❤️❤️";
-            
-            buttonsContainer.style.display = 'none';
-
-            for (let i = 0; i < 30; i++) {
-                setTimeout(() => createHeart(), i * 150);
-            }
-
-            document.body.style.background = 'linear-gradient(-45deg, #ff69b4, #ff1493, #ff69b4, #ffc0cb, #ff69b4, #ff1493)';
-        });
-
         // Handle click/tap on No button
         noBtn.addEventListener('click', function(e) {
             // On mobile, make button jump away a few times before registering click
-            if (isMobile && noButtonMoves < requiredNoMoves) {
+            if (isMobile && noButtonMoves < requiredMoves) {
                 e.preventDefault();
                 moveNoButton();
                 
                 // Update hint text
-                const movesLeft = requiredNoMoves - noButtonMoves;
+                const movesLeft = requiredMoves - noButtonMoves;
                 if (movesLeft > 0) {
                     clickCount.innerHTML = `Nice try! Tap it ${movesLeft} more time${movesLeft > 1 ? 's' : ''}! 😏`;
                 }
@@ -396,6 +364,21 @@
             
             // Reset button position for next round
             setTimeout(initNoButton, 300);
+        });
+
+        yesBtn.addEventListener('click', function() {
+            mainText.innerHTML = "Yay! You forgave me! 😍💖🥳";
+            emojiContainer.innerHTML = "😊❤️💃🎉✨🥰💕🌟🎊💖🌹😘";
+            emojiContainer.classList.remove('hidden');
+            clickCount.innerHTML = "I LOVE YOU SO MUCH! ❤️❤️❤️";
+            
+            buttonsContainer.style.display = 'none';
+
+            for (let i = 0; i < 30; i++) {
+                setTimeout(() => createHeart(), i * 150);
+            }
+
+            document.body.style.background = 'linear-gradient(-45deg, #ff69b4, #ff1493, #ff69b4, #ffc0cb, #ff69b4, #ff1493)';
         });
 
         function createHeart() {
