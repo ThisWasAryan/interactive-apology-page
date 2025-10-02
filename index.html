@@ -89,6 +89,12 @@
             line-height: 1.5;
         }
 
+        @media (max-width: 768px) {
+            #mainText {
+                font-size: 2em;
+            }
+        }
+
         @keyframes pulse {
             0%, 100% { transform: scale(1); }
             50% { transform: scale(1.08); }
@@ -108,7 +114,7 @@
 
         @media (max-width: 768px) {
             .buttons {
-                min-height: 300px;
+                min-height: 350px;
                 flex-direction: column;
             }
         }
@@ -124,6 +130,13 @@
             transition: all 0.3s ease;
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
             position: relative;
+        }
+
+        @media (max-width: 768px) {
+            button {
+                font-size: 1.2em;
+                padding: 16px 30px;
+            }
         }
 
         #yesBtn {
@@ -146,17 +159,6 @@
             z-index: 10;
         }
 
-        @media (max-width: 768px) {
-            #noBtn {
-                font-size: 1.2em;
-                padding: 16px 30px;
-            }
-            button {
-                font-size: 1.2em;
-                padding: 16px 30px;
-            }
-        }
-
         #noBtn:hover {
             transform: scale(1.05);
         }
@@ -170,6 +172,13 @@
             margin-top: 30px;
             animation: bounce 1s ease infinite;
             letter-spacing: 10px;
+        }
+
+        @media (max-width: 768px) {
+            #emojiContainer {
+                font-size: 2.5em;
+                letter-spacing: 5px;
+            }
         }
 
         @keyframes bounce {
@@ -216,6 +225,12 @@
             color: #e73c7e;
             font-weight: bold;
             min-height: 30px;
+        }
+
+        @media (max-width: 768px) {
+            #clickCount {
+                font-size: 1em;
+            }
         }
 
         .sparkle {
@@ -291,9 +306,7 @@
 
         let currentMessageIndex = 0;
         let noClickCount = 0;
-        let noButtonMoves = 0;
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        const requiredMoves = 3;
 
         function createSparkle(x, y) {
             for (let i = 0; i < 5; i++) {
@@ -345,7 +358,7 @@
                 const yesBottom = yesRect.bottom;
                 
                 // Add padding to keep buttons well separated
-                const padding = 20;
+                const padding = 30;
                 
                 // Check if positions overlap
                 const overlaps = !(
@@ -362,67 +375,55 @@
             
             noBtn.style.left = newX + 'px';
             noBtn.style.top = newY + 'px';
-            noBtn.style.transform = 'none';
             
             createSparkle(btnRect.left + btnRect.width/2, btnRect.top + btnRect.height/2);
-            noButtonMoves++;
+            
+            // Shrink the button each time it moves
+            noClickCount++;
+            const newScale = Math.max(0.3, 1 - (noClickCount * 0.1));
+            noBtn.style.transform = `scale(${newScale})`;
         }
 
         function initNoButton() {
             const isMobileView = window.innerWidth <= 768;
             noBtn.style.left = isMobileView ? '50%' : '70%';
             noBtn.style.top = isMobileView ? '70%' : '50%';
-            noBtn.style.transform = 'translate(-50%, -50%)';
+            noBtn.style.transform = 'translate(-50%, -50%) scale(1)';
+            noClickCount = 0;
         }
 
         initNoButton();
         window.addEventListener('resize', initNoButton);
 
-        // Desktop: Move on hover
+        // Desktop only: Move on hover
         if (!isMobile) {
-            noBtn.addEventListener('mouseenter', moveNoButton);
+            noBtn.addEventListener('mouseenter', function() {
+                moveNoButton();
+                // Change message immediately
+                currentMessageIndex = (currentMessageIndex + 1) % sorryMessages.length;
+                mainText.innerHTML = sorryMessages[currentMessageIndex];
+                mainText.classList.add('shake');
+                setTimeout(() => mainText.classList.remove('shake'), 500);
+                
+                if (noClickCount <= 5) {
+                    clickCount.innerHTML = `Come on... just click YES! 🥺 (Attempts: ${noClickCount})`;
+                } else if (noClickCount <= 10) {
+                    clickCount.innerHTML = `Please baby! I'm begging you! 😭 (Attempts: ${noClickCount})`;
+                } else {
+                    clickCount.innerHTML = `I can do this all day! 💪❤️ (Attempts: ${noClickCount})`;
+                }
+                
+                createHeart();
+            });
         }
 
-        // Mobile & Desktop: Move on touch/press
-        noBtn.addEventListener('touchstart', function(e) {
-            if (noButtonMoves < requiredMoves) {
-                e.preventDefault();
-                moveNoButton();
-                const movesLeft = requiredMoves - noButtonMoves;
-                if (movesLeft > 0) {
-                    clickCount.innerHTML = `Nice try! Tap it ${movesLeft} more time${movesLeft > 1 ? 's' : ''}! 😏`;
-                }
-            }
-        });
-
-        // Also trigger on mousedown for desktop click attempts
-        noBtn.addEventListener('mousedown', function(e) {
-            if (!isMobile && noButtonMoves < requiredMoves) {
-                e.preventDefault();
-                moveNoButton();
-                const movesLeft = requiredMoves - noButtonMoves;
-                if (movesLeft > 0) {
-                    clickCount.innerHTML = `Ha! Got away! Try ${movesLeft} more time${movesLeft > 1 ? 's' : ''}! 😏`;
-                }
-            }
-        });
-
-        // Handle No button actual click
+        // Mobile: Move on click and change message immediately
         noBtn.addEventListener('click', function(e) {
-            // Always move button first, even if it's the final click
-            if (noButtonMoves < requiredMoves) {
-                e.preventDefault();
-                moveNoButton();
-                const movesLeft = requiredMoves - noButtonMoves;
-                if (movesLeft > 0) {
-                    clickCount.innerHTML = `Nice try! ${movesLeft} more time${movesLeft > 1 ? 's' : ''}! 😏`;
-                }
-                return;
-            }
-
-            // After required moves, register the click
-            noClickCount++;
-            noButtonMoves = 0;
+            e.preventDefault();
+            
+            moveNoButton();
+            
+            // Change message immediately
             currentMessageIndex = (currentMessageIndex + 1) % sorryMessages.length;
             mainText.innerHTML = sorryMessages[currentMessageIndex];
             
@@ -438,11 +439,6 @@
             }
 
             createHeart();
-            
-            // Reset button position
-            setTimeout(() => {
-                initNoButton();
-            }, 300);
         });
 
         // Handle Yes button click
