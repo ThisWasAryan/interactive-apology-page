@@ -291,55 +291,138 @@
 
         let currentMessageIndex = 0;
         let noClickCount = 0;
-        let moveSpeed = 150; // Initial move distance
+        let noButtonMoves = 0;
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        const requiredMoves = 3;
 
-        // Position the No button initially - away from Yes button
-        function initNoButton() {
-            const rect = buttonsContainer.getBoundingClientRect();
-            const isMobile = window.innerWidth <= 768;
-            
-            if (isMobile) {
-                // On mobile, position it below the Yes button area
-                noBtn.style.left = '50%';
-                noBtn.style.top = '70%';
-            } else {
-                // On desktop, position it to the right
-                noBtn.style.left = '70%';
-                noBtn.style.top = '50%';
+        function createSparkle(x, y) {
+            for (let i = 0; i < 5; i++) {
+                const sparkle = document.createElement('div');
+                sparkle.className = 'sparkle';
+                sparkle.style.left = x + (Math.random() - 0.5) * 50 + 'px';
+                sparkle.style.top = y + (Math.random() - 0.5) * 50 + 'px';
+                document.body.appendChild(sparkle);
+                setTimeout(() => sparkle.remove(), 1000);
             }
-            noBtn.style.transform = 'translate(-50%, -50%)';
         }
 
-        initNoButton();
+        function createHeart() {
+            const heart = document.createElement('div');
+            heart.className = 'heart';
+            heart.textContent = ['❤️', '💖', '💕', '💗', '💝', '🥰', '😍'][Math.floor(Math.random() * 7)];
+            heart.style.left = Math.random() * window.innerWidth + 'px';
+            heart.style.top = window.innerHeight + 'px';
+            document.body.appendChild(heart);
+            setTimeout(() => heart.remove(), 4000);
+        }
 
-        // Re-initialize on window resize (orientation change on mobile)
-        window.addEventListener('resize', initNoButton);
-
-        // Make the No button run away from the mouse
-        noBtn.addEventListener('mouseenter', function(e) {
+        function moveNoButton() {
             const rect = buttonsContainer.getBoundingClientRect();
             const btnRect = noBtn.getBoundingClientRect();
+            const yesRect = yesBtn.getBoundingClientRect();
+            const maxX = rect.width - btnRect.width - 20;
+            const maxY = rect.height - btnRect.height - 20;
             
-            // Calculate new random position within bounds
-            const maxX = rect.width - btnRect.width;
-            const maxY = rect.height - btnRect.height;
+            let newX, newY;
+            let attempts = 0;
+            const maxAttempts = 50;
             
-            let newX = Math.random() * maxX;
-            let newY = Math.random() * maxY;
-            
-            // Increase difficulty after each attempt
-            moveSpeed = Math.min(moveSpeed + 20, 300);
+            // Keep trying until we find a position that doesn't overlap with Yes button
+            do {
+                newX = Math.random() * maxX + 10;
+                newY = Math.random() * maxY + 10;
+                attempts++;
+                
+                // Calculate if the new position would overlap with Yes button
+                const noLeft = rect.left + newX;
+                const noRight = noLeft + btnRect.width;
+                const noTop = rect.top + newY;
+                const noBottom = noTop + btnRect.height;
+                
+                const yesLeft = yesRect.left;
+                const yesRight = yesRect.right;
+                const yesTop = yesRect.top;
+                const yesBottom = yesRect.bottom;
+                
+                // Add padding to keep buttons well separated
+                const padding = 20;
+                
+                // Check if positions overlap
+                const overlaps = !(
+                    noRight + padding < yesLeft ||
+                    noLeft - padding > yesRight ||
+                    noBottom + padding < yesTop ||
+                    noTop - padding > yesBottom
+                );
+                
+                if (!overlaps || attempts >= maxAttempts) {
+                    break;
+                }
+            } while (true);
             
             noBtn.style.left = newX + 'px';
             noBtn.style.top = newY + 'px';
             noBtn.style.transform = 'none';
             
             createSparkle(btnRect.left + btnRect.width/2, btnRect.top + btnRect.height/2);
+            noButtonMoves++;
+        }
+
+        function initNoButton() {
+            const isMobileView = window.innerWidth <= 768;
+            noBtn.style.left = isMobileView ? '50%' : '70%';
+            noBtn.style.top = isMobileView ? '70%' : '50%';
+            noBtn.style.transform = 'translate(-50%, -50%)';
+        }
+
+        initNoButton();
+        window.addEventListener('resize', initNoButton);
+
+        // Desktop: Move on hover
+        if (!isMobile) {
+            noBtn.addEventListener('mouseenter', moveNoButton);
+        }
+
+        // Mobile & Desktop: Move on touch/press
+        noBtn.addEventListener('touchstart', function(e) {
+            if (noButtonMoves < requiredMoves) {
+                e.preventDefault();
+                moveNoButton();
+                const movesLeft = requiredMoves - noButtonMoves;
+                if (movesLeft > 0) {
+                    clickCount.innerHTML = `Nice try! Tap it ${movesLeft} more time${movesLeft > 1 ? 's' : ''}! 😏`;
+                }
+            }
         });
 
-        // If they somehow click the No button
-        noBtn.addEventListener('click', function() {
+        // Also trigger on mousedown for desktop click attempts
+        noBtn.addEventListener('mousedown', function(e) {
+            if (!isMobile && noButtonMoves < requiredMoves) {
+                e.preventDefault();
+                moveNoButton();
+                const movesLeft = requiredMoves - noButtonMoves;
+                if (movesLeft > 0) {
+                    clickCount.innerHTML = `Ha! Got away! Try ${movesLeft} more time${movesLeft > 1 ? 's' : ''}! 😏`;
+                }
+            }
+        });
+
+        // Handle No button actual click
+        noBtn.addEventListener('click', function(e) {
+            // Always move button first, even if it's the final click
+            if (noButtonMoves < requiredMoves) {
+                e.preventDefault();
+                moveNoButton();
+                const movesLeft = requiredMoves - noButtonMoves;
+                if (movesLeft > 0) {
+                    clickCount.innerHTML = `Nice try! ${movesLeft} more time${movesLeft > 1 ? 's' : ''}! 😏`;
+                }
+                return;
+            }
+
+            // After required moves, register the click
             noClickCount++;
+            noButtonMoves = 0;
             currentMessageIndex = (currentMessageIndex + 1) % sorryMessages.length;
             mainText.innerHTML = sorryMessages[currentMessageIndex];
             
@@ -355,14 +438,19 @@
             }
 
             createHeart();
+            
+            // Reset button position
+            setTimeout(() => {
+                initNoButton();
+            }, 300);
         });
 
+        // Handle Yes button click
         yesBtn.addEventListener('click', function() {
             mainText.innerHTML = "Yay! You forgave me! 😍💖🥳";
             emojiContainer.innerHTML = "😊❤️💃🎉✨🥰💕🌟🎊💖🌹😘";
             emojiContainer.classList.remove('hidden');
             clickCount.innerHTML = "I LOVE YOU SO MUCH! ❤️❤️❤️";
-            
             buttonsContainer.style.display = 'none';
 
             for (let i = 0; i < 30; i++) {
@@ -371,31 +459,6 @@
 
             document.body.style.background = 'linear-gradient(-45deg, #ff69b4, #ff1493, #ff69b4, #ffc0cb, #ff69b4, #ff1493)';
         });
-
-        function createHeart() {
-            const heart = document.createElement('div');
-            heart.className = 'heart';
-            heart.textContent = ['❤️', '💖', '💕', '💗', '💝', '🥰', '😍'][Math.floor(Math.random() * 7)];
-            heart.style.left = Math.random() * window.innerWidth + 'px';
-            heart.style.top = window.innerHeight + 'px';
-            document.body.appendChild(heart);
-
-            setTimeout(() => {
-                heart.remove();
-            }, 4000);
-        }
-
-        function createSparkle(x, y) {
-            for (let i = 0; i < 5; i++) {
-                const sparkle = document.createElement('div');
-                sparkle.className = 'sparkle';
-                sparkle.style.left = x + (Math.random() - 0.5) * 50 + 'px';
-                sparkle.style.top = y + (Math.random() - 0.5) * 50 + 'px';
-                document.body.appendChild(sparkle);
-
-                setTimeout(() => sparkle.remove(), 1000);
-            }
-        }
 
         // Make Yes button grow bigger as No attempts increase
         setInterval(() => {
