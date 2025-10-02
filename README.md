@@ -9,7 +9,6 @@
 
 ### *Because sometimes "I'm sorry" just isn't enough... you need interactive entertainment!* 🎭
 
-[🎮 **LIVE DEMO**](#) | [📖 Documentation](#features) | [💕 How to Use](#installation)
 
 ---
 
