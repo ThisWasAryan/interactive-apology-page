@@ -73,17 +73,17 @@ Meanwhile, the "Yes" button? Gets **BIGGER** and **MORE TEMPTING** with every fa
 2. Go to **Settings** → **Pages**
 3. Select **main branch** as source
 4. Wait 2 minutes ⏰
-5. Your page will be live at: `https://yourusername.github.io/apology-page/`
+5. Your page will be live at: `https://yourusername.github.io/interactive-apology-page/`
 6. **Send the link** and watch the magic happen! ✨
 
 ### Option 2: Download & Open Locally
 
 ```bash
 # Clone this repo
-git clone https://github.com/yourusername/apology-page.git
+git clone https://github.com/thiswasaryan/interactive-apology-page.git
 
 # Open the file
-cd apology-page
+cd interactive-apology-page
 open index.html  # Mac
 start index.html # Windows
 xdg-open index.html # Linux
@@ -270,7 +270,7 @@ git init
 git add .
 git commit -m "💕 Initial commit - Time to apologize!"
 git branch -M main
-git remote add origin https://github.com/yourusername/apology-page.git
+git remote add origin https://github.com/thiswasaryan/interactive-apology-page.git
 git push -u origin main
 ```
 
