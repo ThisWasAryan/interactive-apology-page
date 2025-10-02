@@ -292,6 +292,6 @@ netlify deploy --prod --dir=.
 
 **Remember: The best apology is changed behavior... but this is a close second!** 😉
 
-![Visitors](https://visitor-badge.laobi.icu/badge?page_id=yourusername.apology-page)
+![Visitors](https://visitor-badge.laobi.icu/badge?page_id=thiswasaryan.interactive-apology-page)
 
 </div>
