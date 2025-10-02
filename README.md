@@ -20,9 +20,9 @@
 
 </div>
 
-####🔗 Too lazy to deploy? Use mine!
-Just share this link: https://thiswasaryan.github.io/interactive-apology-page/
-Perfect for emergencies when you need to apologize RIGHT NOW! ⚡💕
+#🔗 Too lazy to deploy? Use mine!
+##Just share this link: https://thiswasaryan.github.io/interactive-apology-page/
+###Perfect for emergencies when you need to apologize RIGHT NOW! ⚡💕
 
 ---
 
